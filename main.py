@@ -1,6 +1,7 @@
 import random
 import configparser
 import time
+from types import SimpleNamespace
 
 import cv2 as cv
 
@@ -22,61 +23,54 @@ FILE_NAME = CONFIG[SECTION]['FILE_NAME']
 #    import matplotlib.pyplot as plt
 #    import matplotlib.image as mpimg
 
-def new_population(fittest):
+
+def new_population(fittest, info):
     # Make new chromosomes by crossing over the fittest
     children = fittest[:ELITE_COUNT]
     for ii in range(POPULATION_SIZE-ELITE_COUNT):
         parent_a = random.choice(fittest)
         parent_b = random.choice(fittest)
-        child = parent_a.crossover(parent_b)
+        child = parent_a.crossover(parent_b, info)
         children.append(child)
     return children
 
+
 def main():
-    population = []
-    gens_done = 0
-    gens_left = GENERATIONS
-    mutator = mutators.get_mutator(MUTATOR_NAME)
-    target_image = cv.imread(FILE_NAME, 1)
-    if target_image is None:
+    # Info is bound to a namespace so we can pass it to chromosomes
+    info = SimpleNamespace(
+        population=[],
+        gens_done=0,
+        gens_left=GENERATIONS,
+        mutator=mutators.get_mutator(MUTATOR_NAME),
+        target_image=cv.imread(FILE_NAME, 1),
+        config_info=CONFIG,
+    )
+    if info.target_image is None:
         raise Exception('Image not found')
 
     for ii in range(POPULATION_SIZE):
-        population.append(mutator.Chromosome(target_image))
+        chrom = info.mutator.Chromosome(info)
+        info.population.append(chrom)
 
-    population.sort(key=lambda chrom: chrom.evaluate())
-    fittest = population[:PARENT_COUNT]
+    info.population.sort(key=lambda chrom: chrom.evaluate())
+    fittest = info.population[:PARENT_COUNT]
 
-    while gens_done < GENERATIONS:
-        '''
-        if not started and DISPLAY_ON:
-            plt.ion()
-            plt.axis('off')
-        '''
-        gens_left -= 1
-        gens_done += 1
+    while info.gens_done < GENERATIONS:
+        info.gens_left -= 1
+        info.gens_done += 1
 
         # Find most fit
-        population.sort(key=lambda chrom: chrom.evaluate())
-        fittest = population[:PARENT_COUNT]
-
-        # Show fittest
-        '''
-        if DISPLAY_ON:
-            plt.clf()
-            plt.imshow(fittest[0])
-            plt.axis('off')
-            plt.pause(0.05)
-        '''
+        info.population.sort(key=lambda chrom: chrom.evaluate())
+        fittest = info.population[:PARENT_COUNT]
 
         # Crossover fittest to produce new population
-        population = new_population(fittest)
+        info.population = new_population(fittest, info)
 
-        for chrom in population[ELITE_COUNT:]:
+        for chrom in info.population[ELITE_COUNT:]:
             chrom.mutate()
 
         msg = 'Generation: {} \tFittest: {}'
-        print(msg.format(gens_done, repr(fittest[0].evaluate())))
+        print(msg.format(info.gens_done, repr(fittest[0].evaluate())))
 
     name_info = (MUTATOR_NAME, POPULATION_SIZE, GENERATIONS, time.time())
     save_name = '{}_{}POP_{}GENS_{}'.format(*name_info)
@@ -87,6 +81,7 @@ def main():
     cv.imwrite(save_path, best.render())
     msg = 'Result saved as {}'
     print(msg.format(save_path))
+
 
 if __name__ == '__main__':
     main()
