@@ -6,15 +6,15 @@ class AbsChromosome(ABC):
         pass
 
     @abstractmethod
-    def crossover(self, mate):
+    def crossover(self, mate, context):
         pass
     
     @abstractmethod
-    def mutate(self, chrom):
+    def mutate(self):
         pass
         
     @abstractmethod
-    def evaluate(self, chrom):
+    def evaluate(self):
         pass
 
     @abstractmethod
