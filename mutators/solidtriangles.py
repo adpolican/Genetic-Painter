@@ -28,10 +28,10 @@ class Chromosome(AbsChromosome):
         self.target = info.target_image
         self.info = info
 
-    def crossover(self, mate, new_info):
+    def crossover(self, mate, context):
         # No real crossover, we're just randomly choosing one to copy
         parent = random.choice((self, mate))
-        child = Chromosome(new_info)
+        child = Chromosome(context)
         child.genes[:] = self.genes # copy values
         return child
 
