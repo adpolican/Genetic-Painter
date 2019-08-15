@@ -12,21 +12,21 @@ CONFIG.read('./config/solidtriangles.ini')
 
 
 class Chromosome(AbsChromosome):
-    def __init__(self, info):
+    def __init__(self, context):
         '''
         Keyword arguments:
         img -- a numpy array representing the target image 
         with shape (height, width, 3)
         '''
-        img = info.target_image
+        img = context.target_image
         self.height, self.width, _ = img.shape
         self.colors = img.reshape(self.height*self.width, 3)
         bg_color = random.choice(self.colors)
 
         self.genes = np.zeros(img.shape, np.uint8)
         self.genes[:, :] = bg_color
-        self.target = info.target_image
-        self.info = info
+        self.target = context.target_image
+        self.context = context
 
     def crossover(self, mate, context):
         # No real crossover, we're just randomly choosing one to copy
@@ -45,8 +45,8 @@ class Chromosome(AbsChromosome):
         vertices[:] = center
         
         '''
-        gens_left = self.info.gens_left
-        total_gens = int(self.info.config_info['SETTINGS']['GENERATIONS'])
+        gens_left = self.context.gens_left
+        total_gens = int(self.context.config_info['SETTINGS']['GENERATIONS'])
         lowest_ratio = 0.5
         prog_ratio = gens_left/total_gens
         prog_ratio = max(prog_ratio, lowest_ratio)
@@ -69,6 +69,7 @@ class Chromosome(AbsChromosome):
         color = random.choice(self.colors)
         color = [int(x) for x in color]
         cv.fillPoly(self.genes, pts=[vertices], color=color)
+        return self
 
     def evaluate(self):
         # Pixel by pixel comparison

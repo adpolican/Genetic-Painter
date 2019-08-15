@@ -12,21 +12,21 @@ CONFIG.read('./config/eqtriangles.ini')
 
 
 class Chromosome(AbsChromosome):
-    def __init__(self, info):
+    def __init__(self, context):
         '''
         Keyword arguments:
         img -- a numpy array representing the target image 
         with shape (height, width, 3)
         '''
-        img = info.target_image
+        img = context.target_image
         self.height, self.width, _ = img.shape
         self.colors = img.reshape(self.height*self.width, 3)
         bg_color = random.choice(self.colors)
 
         self.genes = np.zeros(img.shape, np.uint8)
         self.genes[:, :] = bg_color
-        self.target = info.target_image
-        self.info = info
+        self.target = context.target_image
+        self.context = context
 
     def crossover(self, mate, context):
         # No real crossover, we're just randomly choosing one to copy
@@ -36,7 +36,7 @@ class Chromosome(AbsChromosome):
         return child
 
     def mutate(self):
-        # Place a random triangle on the canvas
+        # Place an equilateral triangle on the canvas
         vertices = np.array([[0, 1],
                              [-0.866, -0.5], 
                              [0.866, -0.5]])
@@ -55,10 +55,20 @@ class Chromosome(AbsChromosome):
         color = [int(x) for x in color]
         cv.fillPoly(self.genes, pts=[vertices], color=color)
 
-    def evaluate(self):
         # Pixel by pixel comparison
         diff = np.abs(self.target - self.genes)
-        return np.sum(diff)
+        self.fitness = np.sum(diff)
+
+        return self
+
+
+    def evaluate(self): 
+        try:
+            return self.fitness
+        except:
+            diff = np.abs(self.target - self.genes)
+            self.fitness = np.sum(diff)
+            return self.fitness
 
     def get_name(self):
         return NAME

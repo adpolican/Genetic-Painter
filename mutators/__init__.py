@@ -1,9 +1,13 @@
 import mutators.solidtriangles
+import mutators.eqtriangles
 
 class MutatorNameError:
     pass
 
-mutator_map = {'solid_triangles': mutators.solidtriangles}
+mutator_map = {
+   'solidtriangles': mutators.solidtriangles,
+   'eqtriangles': mutators.eqtriangles,
+              }
 
 def get_mutator(name):
     try:

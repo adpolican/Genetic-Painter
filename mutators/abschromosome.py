@@ -11,6 +11,7 @@ class AbsChromosome(ABC):
     
     @abstractmethod
     def mutate(self):
+        # Must return self at the end
         pass
         
     @abstractmethod
